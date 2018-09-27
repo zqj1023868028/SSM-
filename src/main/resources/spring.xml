@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xmlns:mvc="http://www.springframework.org/schema/mvc"
+    xmlns:tx="http://www.springframework.org/schema/tx"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop.xsd
+        http://www.springframework.org/schema/mvc
+        http://www.springframework.org/schema/mvc/spring-mvc.xsd
+        http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx.xsd
+        ">
+ <!-- 开启MVC注释 -->
+  <mvc:annotation-driven />
+   <!-- endMVC注释 -->
+ 	<context:component-scan base-package="com.zqj.controllor"></context:component-scan>
+ 	<context:component-scan base-package="com.zqj.service"></context:component-scan>
+ 	<context:component-scan base-package="com.zqj.pojo"></context:component-scan>
+  	<context:component-scan base-package="com.zqj.mapper"></context:component-scan>
+   	<context:component-scan base-package="com.zqj.util"></context:component-scan>
+   	
+<!-- 数据源 这里使用spring自带的简洁型数据源，官网19.3.1，如果想使用，别忘了引入spring-jdbc的扩展包 -->
+   <bean id="dataSource"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
+		<property name="url" value="jdbc:mysql://127.0.0.1:3306/usersmanager?useUnicode=true&amp;characterEncoding=utf8&amp;useSSL=false" />
+		<property name="username" value="root" />
+		<property name="password" value="102386" />
+	</bean>
+	
+<!-- Spring 整合Mybatis：使用IOC容器替代原有的SqlSessionFactroy -->
+ <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+  <!-- 这里要传入一个数据源或连接池 -->
+  <property name="dataSource" ref="dataSource" />
+ <!-- 这里填上mybatis的配置文件路径 -->
+  <property name="configLocation" value="classpath:mybatis.xml" />
+<!-- 这里传入映射文件所在位置，还可以使用*进行通配 -->
+  <property name="mapperLocations" value="classpath:com/zqj/mapper/xml/*.xml" />
+</bean>
+
+<!-- 自动映射接口扫描器：将所有映射接口扫入整合完的Mybatis，并交由IOC管理 -->
+<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+  <property name="basePackage" value="com/zqj.mapper" />
+  <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" />
+</bean>
+
+<!-- 开启事物注解功能 -->
+	<tx:annotation-driven transaction-manager="txManager" />
+<!-- 事物管理器，要申明事物管理作用于哪个数据源链接的数据库上 -->
+	<bean id="txManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<!-- (this dependency is defined somewhere else) -->
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	<!-- end 事务管理 -->
+   	   
+   	   	<!-- Spring 上传文件工具 -->
+	<bean id="multipartResolver"
+		class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<!-- one of the properties available; the maximum file size in bytes -->
+		<!-- 配置最大上传文件大小，-1代表不限制 -->
+		<property name="maxUploadSize" value="-1" />
+	</bean>
+	<!-- end 上传文件 -->
+	
+	<!-- 视图解析器：使用指定的前缀和后缀作为转发路径 -->
+	<bean id="jspViewResolver"
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix" value="/" />
+		<property name="suffix" value=".jsp" />
+	</bean>
+	<!-- end 视图解析器 -->
+   </beans>
+   
